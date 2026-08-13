@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Log in — ShopDemo</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <a class="brand" href="/">ShopDemo</a>
+    <div class="nav"><a href="/">Home</a></div>
+  </div>
+  <div class="container" style="max-width:420px;">
+    <div class="panel">
+      <h1>Log in</h1>
+      <p class="muted">Use the credentials provided by your organizer.</p>
+      <label for="username">Username</label>
+      <input id="username" autocomplete="username" />
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" />
+      <button onclick="doLogin()">Log in</button>
+      <button class="secondary" onclick="location.href='/reset.html'">Forgot password?</button>
+      <div id="msg" class="msg"></div>
+    </div>
+  </div>
+  <script>
+    async function doLogin() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const msg = document.getElementById('msg');
+      msg.textContent = '';
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          msg.className = 'msg error';
+          msg.textContent = data.error || 'Login failed';
+          return;
+        }
+        location.href = '/dashboard.html';
+      } catch (e) {
+        msg.className = 'msg error';
+        msg.textContent = 'Network error';
+      }
+    }
+  </script>
+</body>
+</html>

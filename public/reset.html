@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Reset password — ShopDemo</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <a class="brand" href="/">ShopDemo</a>
+    <div class="nav"><a href="/login.html">Log in</a></div>
+  </div>
+  <div class="container" style="max-width:460px;">
+    <div class="panel">
+      <h1>Reset password</h1>
+      <p class="muted">Step 1: request a reset token for your account.</p>
+      <label for="ru">Username</label>
+      <input id="ru" />
+      <button onclick="requestReset()">Request reset</button>
+      <div id="rmsg" class="msg"></div>
+    </div>
+    <div class="panel">
+      <p class="muted">Step 2: have a token? Set a new password.</p>
+      <label for="tok">Reset token</label>
+      <input id="tok" />
+      <label for="np">New password</label>
+      <input id="np" type="password" />
+      <button onclick="confirmReset()">Set new password</button>
+      <div id="cmsg" class="msg"></div>
+    </div>
+  </div>
+  <script>
+    async function requestReset() {
+      const username = document.getElementById('ru').value;
+      const res = await fetch('/api/password-reset/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username }),
+      });
+      const data = await res.json();
+      const el = document.getElementById('rmsg');
+      el.className = 'msg success';
+      el.textContent = data.message || 'Request submitted.';
+    }
+    async function confirmReset() {
+      const token = document.getElementById('tok').value;
+      const newPassword = document.getElementById('np').value;
+      const res = await fetch('/api/password-reset/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, newPassword }),
+      });
+      const data = await res.json();
+      const el = document.getElementById('cmsg');
+      el.className = res.ok ? 'msg success' : 'msg error';
+      el.textContent = data.message || data.error;
+    }
+  </script>
+</body>
+</html>

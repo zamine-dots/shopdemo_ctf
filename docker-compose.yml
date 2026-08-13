@@ -1,0 +1,9 @@
+services:
+  shopdemo:
+    build: .
+    container_name: shopdemo-ctf
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    # No volumes: the whole app -- including the exposed git-source/ history
+    # and all in-memory data -- resets on every rebuild/restart.

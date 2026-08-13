@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Dashboard — ShopDemo</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <a class="brand" href="/">ShopDemo</a>
+    <div class="nav">
+      <span id="who"></span>
+      <a href="#" onclick="logout()">Log out</a>
+    </div>
+  </div>
+  <div class="container">
+    <div class="panel">
+      <h1>My Notes</h1>
+      <p class="muted">Private notes only visible to you.</p>
+      <div id="notes"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Profile</h2>
+      <p class="muted">Update your display name below.</p>
+      <label for="dn">Display name</label>
+      <input id="dn" />
+      <button onclick="saveProfile()">Save changes</button>
+      <div id="pmsg" class="msg"></div>
+    </div>
+
+    <div class="panel" id="noteView" style="display:none;">
+      <h2>Note detail</h2>
+      <pre class="output" id="noteBody"></pre>
+    </div>
+  </div>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

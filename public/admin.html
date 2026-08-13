@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Admin — ShopDemo</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <a class="brand" href="/">ShopDemo</a>
+    <div class="nav">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="#" onclick="logout()">Log out</a>
+    </div>
+  </div>
+  <div class="container">
+    <div class="panel">
+      <h1>Admin panel</h1>
+      <p class="muted">Users, orders, logs, configuration, and reports.</p>
+      <div class="tabs">
+        <button class="active" onclick="showTab('users', event)">Users</button>
+        <button onclick="showTab('orders', event)">Orders</button>
+        <button onclick="showTab('logs', event)">Audit logs</button>
+        <button onclick="showTab('config', event)">Configuration</button>
+        <button onclick="showTab('system', event)">System info</button>
+        <button onclick="showTab('files', event)">Reports / Files</button>
+      </div>
+      <pre class="output" id="out">Loading…</pre>
+    </div>
+
+    <div class="panel" id="fileBrowser" style="display:none;">
+      <h2>Report file preview</h2>
+      <p class="muted">Select a file to preview its contents.</p>
+      <div id="fileList"></div>
+      <pre class="output" id="fileContent"></pre>
+    </div>
+  </div>
+  <script src="/js/admin.js"></script>
+</body>
+</html>
