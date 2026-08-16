@@ -6,12 +6,14 @@ const authRoutes = require('./routes/auth');
 const notesRoutes = require('./routes/notes');
 const adminRoutes = require('./routes/admin');
 const miscRoutes = require('./routes/misc');
+const { environmentIsolation } = require('./middleware/environment');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(environmentIsolation);
 
 // Realistic-looking headers / minor info leaks (harmless flavor, not a flag)
 app.use((req, res, next) => {

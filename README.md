@@ -23,6 +23,38 @@ http://TARGET:3000
 Replace `TARGET` with the hostname or IP your organizer gives you (this may
 just be `localhost` if you're running it yourself).
 
+When run through the Docker gateway, each browser receives its own isolated
+ShopDemo container. The gateway assigns an `HttpOnly` cookie and proxies that
+browser to an independent container with separate passwords, roles, notes, and
+challenge state. Containers are removed after 12 hours without activity
+(configurable with `IDLE_TTL_HOURS`). The assignment ledger is stored in a
+Docker volume, so restarting the gateway does not merge environments.
+
+## Shared tunnel deployment
+
+Start the stack with the command below. It builds the participant image before
+starting the gateway. Always forward the tunnel to the gateway on port `3000`,
+never directly to a participant container:
+
+```bash
+docker compose up -d --build
+```
+
+For example:
+
+```bash
+cloudflared tunnel --url http://localhost:3000
+```
+
+The gateway mounts `/var/run/docker.sock` so it can create participant
+containers. This grants it control over the Docker host; use a dedicated CTF
+machine without unrelated workloads. The default capacity is 50 environments.
+Adjust `MAX_ENVIRONMENTS`, `IDLE_TTL_HOURS`, and player resource limits in
+`docker-compose.yml` when needed.
+
+Without Docker, `npm start` runs the app directly with browser-cookie state
+isolation as a fallback, but it does not create a container per participant.
+
 ## Your starting credentials
 
 ```

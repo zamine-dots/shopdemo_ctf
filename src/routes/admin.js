@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
-const db = require('../data');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 router.use('/api/admin', requireAuth, requireAdmin);
 
 router.get('/api/admin/users', (req, res) => {
-  res.json(db.users.map(({ passwordHash, ...safe }) => safe));
+  res.json(req.db.users.map(({ passwordHash, ...safe }) => safe));
 });
 
 router.get('/api/admin/orders', (req, res) => {
@@ -21,7 +20,7 @@ router.get('/api/admin/orders', (req, res) => {
 
 router.get('/api/admin/logs', (req, res) => {
   // Flag 6 lives inside a realistic audit trail.
-  res.json(db.auditLog);
+  res.json(req.db.auditLog);
 });
 
 router.get('/api/admin/system-info', (req, res) => {
@@ -45,13 +44,13 @@ router.get('/api/admin/config', (req, res) => {
 });
 
 // --- Sandboxed file preview (Flag 7) ---------------------------------
-// IMPORTANT: this NEVER touches the real filesystem. `db.virtualFiles`
+// IMPORTANT: this NEVER touches the real filesystem. `req.db.virtualFiles`
 // is a plain in-memory object keyed by fixed virtual paths. There is no
 // path resolution against disk, so path traversal cannot escape to the
 // host regardless of what a player sends -- the worst case is simply
 // "file not found" in this virtual namespace.
 router.get('/api/admin/files', (req, res) => {
-  res.json({ files: Object.keys(db.virtualFiles) });
+  res.json({ files: Object.keys(req.db.virtualFiles) });
 });
 
 router.get('/api/admin/files/preview', (req, res) => {
@@ -59,7 +58,7 @@ router.get('/api/admin/files/preview', (req, res) => {
   // Normalize only for comparison purposes -- we look the result up in a
   // fixed map, we never open anything on disk.
   const normalized = path.posix.normalize(requested);
-  const content = db.virtualFiles[normalized];
+  const content = req.db.virtualFiles[normalized];
   if (!content) {
     return res.status(404).json({ error: 'File not found in sandbox', requested: normalized });
   }

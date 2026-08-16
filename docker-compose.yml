@@ -1,9 +1,40 @@
 services:
-  shopdemo:
-    build: .
-    container_name: shopdemo-ctf
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway.Dockerfile
+    container_name: shopdemo-gateway
     ports:
       - "3000:3000"
+    environment:
+      PORT: "3000"
+      TARGET_IMAGE: "shopdemo-ctf-player:latest"
+      DOCKER_NETWORK: "shopdemo-ctf-network"
+      MAX_ENVIRONMENTS: "50"
+      IDLE_TTL_HOURS: "12"
+      STATE_FILE: "/var/lib/shopdemo-gateway/environments.json"
+      PLAYER_CPUS: "0.50"
+      PLAYER_MEMORY: "256m"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - gateway-state:/var/lib/shopdemo-gateway
+    networks:
+      - shopdemo
+    depends_on:
+      shopdemo-player-image:
+        condition: service_completed_successfully
     restart: unless-stopped
-    # No volumes: the whole app -- including the exposed git-source/ history
-    # and all in-memory data -- resets on every rebuild/restart.
+
+  shopdemo-player-image:
+    build: .
+    image: shopdemo-ctf-player:latest
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["exit 0"]
+    restart: "no"
+
+volumes:
+  gateway-state:
+
+networks:
+  shopdemo:
+    name: shopdemo-ctf-network

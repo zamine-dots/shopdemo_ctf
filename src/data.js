@@ -18,7 +18,7 @@ const finalCipherText = xorEncode(
 
 // --- Users ------------------------------------------------------------
 // Passwords are bcrypt-hashed at startup (see hashSync calls below).
-const users = [
+const initialUsers = [
   {
     id: 1,
     username: 'alice',
@@ -56,7 +56,7 @@ const users = [
 ];
 
 // --- Notes (private "sticky notes" resource, vulnerable to IDOR) ------
-const notes = [
+const initialNotes = [
   {
     id: 1,
     ownerId: 1,
@@ -69,7 +69,6 @@ const notes = [
     title: "Bob's reminder",
     body:
       `Reset my password again and I swear I'm filing a ticket with IT.\n` +
-      `Also: ${flags.FLAG4_AUTH_WEAKNESS}\n` +
       `(Side note to self -- the /api/me endpoint accepts way more fields than it should. Told the admin, they said they'd fix it "next sprint".)`,
   },
   {
@@ -106,7 +105,7 @@ function issueResetToken(username) {
   return Buffer.from(raw).toString('base64');
 }
 
-function consumeResetToken(token) {
+function consumeResetToken(token, users) {
   let decoded;
   try {
     decoded = Buffer.from(token, 'base64').toString('utf8');
@@ -129,7 +128,7 @@ function consumeResetToken(token) {
 }
 
 // --- Admin audit log (Flag 6) ------------------------------------------
-const auditLog = [
+const initialAuditLog = [
   { ts: '2026-06-01T09:12:03Z', actor: 'admin', action: 'LOGIN_SUCCESS' },
   { ts: '2026-06-01T09:14:47Z', actor: 'admin', action: 'USER_ROLE_UPDATE', detail: 'set bob role=user (reverted accidental promotion)' },
   { ts: '2026-06-02T11:02:19Z', actor: 'admin', action: 'CONFIG_CHANGE', detail: 'disabled legacy /api/dev/* routes' },
@@ -141,7 +140,7 @@ const auditLog = [
 // --- Sandboxed virtual filesystem for admin file-preview (Flag 7) ------
 // This is NEVER resolved against the real host filesystem -- it is a
 // pure in-memory map keyed by virtual path.
-const virtualFiles = {
+const initialVirtualFiles = {
   '/app/data/reports/monthly-summary.txt':
     'Monthly summary: sales up 4%, support tickets down 12%. Nothing sensitive here.',
   '/app/data/reports/README.txt':
@@ -154,12 +153,17 @@ const virtualFiles = {
     'TODO: remember to actually delete this backup file someday.',
 };
 
-module.exports = {
-  users,
-  notes,
-  auditLog,
-  virtualFiles,
-  issueResetToken,
-  consumeResetToken,
-  xorEncode,
-};
+function createEnvironment() {
+  const users = initialUsers.map(user => ({ ...user }));
+
+  return {
+    users,
+    notes: initialNotes.map(note => ({ ...note })),
+    auditLog: initialAuditLog.map(entry => ({ ...entry })),
+    virtualFiles: { ...initialVirtualFiles },
+    issueResetToken,
+    consumeResetToken: token => consumeResetToken(token, users),
+  };
+}
+
+module.exports = { createEnvironment, xorEncode };

